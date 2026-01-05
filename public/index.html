@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Pati Takip & GIS 🐾</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --primary: #e67e22; --neon-border: #8d4004; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; background: #fdfdfd; }
+        #landing-page { height: 100vh; display: flex; justify-content: center; align-items: center; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
+        .hero-box { background: rgba(255, 255, 255, 0.95); padding: 50px; border-radius: 30px; border: 4px solid var(--neon-border); text-align: center; max-width: 600px; }
+        #form-page { display: none; min-height: 100vh; flex-direction: column; align-items: center; padding: 40px 20px; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
+        .tabs { display: flex; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 15px; margin-bottom: 25px; width: 100%; max-width: 450px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 600; color: #666; transition: 0.3s; }
+        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .neon-frame { background: white; padding: 35px; border-radius: 30px; border: 6px solid var(--neon-border); box-shadow: 0 0 40px rgba(230, 126, 34, 0.4); width: 100%; max-width: 480px; }
+        .address-box { display: flex; gap: 8px; margin-bottom: 15px; }
+        .address-box input { flex: 1; border: 2px solid #eee; padding: 10px; border-radius: 10px; }
+        .btn-find { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: 'Poppins'; }
+        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; font-family: 'DM Serif Display'; transition: 0.3s; }
+        #map-page { display: none; padding: 20px; flex-direction: column; align-items: center; }
+        #mainMap { height: 600px; width: 95%; max-width: 1100px; border-radius: 25px; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div id="landing-page">
+        <div class="hero-box">
+            <h1 style="font-family:'DM Serif Display'; font-size:40px; color:var(--neon-border);">Pati Takip Sistemi</h1>
+            <p>Canlarımızın yerini işaretleyin, durumlarını güncel tutun.</p>
+            <button onclick="gecFormSayfasi()" style="background:var(--primary); color:white; border:none; padding:15px 40px; border-radius:50px; font-size:20px; font-weight:bold; cursor:pointer;">Başla →</button>
+        </div>
+    </div>
+
+    <div id="form-page">
+        <div class="tabs">
+            <button id="tabPati" class="tab-btn active" onclick="sekmeDegis('pati')">🐾 Patiler</button>
+            <button id="tabBesleme" class="tab-btn" onclick="sekmeDegis('besleme')">🍲 Besleme Noktaları</button>
+        </div>
+
+        <div class="neon-frame">
+            <h2 id="formTitle" style="font-family:'DM Serif Display'; text-align:center; color:var(--neon-border);">Yeni Pati Ekle</h2>
+            
+            <div class="address-box">
+                <input type="text" id="addressInput" placeholder="Adres ara (Sokak, Mahalle...)">
+                <button class="btn-find" onclick="searchAddress()">Bul 🔍</button>
+            </div>
+            
+            <div id="miniMap" style="height:200px; border-radius:15px; margin-bottom:15px; border:1px solid #ddd;"></div>
+            
+            <form id="mainForm">
+                <input type="hidden" id="lat"> <input type="hidden" id="lng">
+                <input type="text" id="name" placeholder="Adı veya Bölge İsmi" required>
+                
+                <div id="patiFields">
+                    <div style="display: flex; gap: 10px;">
+                        <select id="tur" style="flex:1;">
+                            <option value="Kedi">Kedi</option>
+                            <option value="Köpek">Köpek</option>
+                            <option value="Kuş">Kuş</option>
+                            <option value="Diğer">Diğer</option>
+                        </select>
+                        <input type="text" id="yas" placeholder="Yaşı (Örn: 2)" style="flex:1;">
+                    </div>
+                    <input type="text" id="sahip" placeholder="Sahibi / Bulan Kişi">
+                    <input type="text" id="cins" placeholder="Cinsi (Örn: Tekir, Kanarya)">
+                </div>
+
+                <div id="beslemeFields" style="display:none;">
+                    <input type="text" id="besleyenKisi" placeholder="Gönüllü Besleyen Kişi">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="kopekSayi" placeholder="🐕 Sayısı" style="flex:1;">
+                        <input type="number" id="kediSayi" placeholder="🐈 Sayısı" style="flex:1;">
+                        <input type="number" id="kusSayi" placeholder="🐦 Sayısı" style="flex:1;">
+                    </div>
+                </div>
+
+                <textarea id="notlar" placeholder="Sağlık durumu, ihtiyaçlar veya özel notlar..."></textarea>
+                
+                <div style="text-align:center; padding: 12px; border: 2px dashed #e67e22; border-radius: 12px; margin-bottom: 15px; background: #fffaf5;">
+                    <label for="fileInput" style="cursor:pointer; color: #d35400; font-weight: bold;">📸 Fotoğraf Seç</label>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                </div>
+
+                <button type="submit" class="btn-save">Kaydet</button>
+            </form>
+            <button onclick="gecHaritaSayfasi()" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">Haritayı Aç 🗺️</button>
+        </div>
+    </div>
+
+    <div id="map-page">
+        <h2 style="font-family:'DM Serif Display'; color:var(--neon-border);">Canlı GIS Haritası</h2>
+        <div id="mainMap"></div>
+        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; border-radius:10px; border:none; background:var(--neon-border); color:white; cursor:pointer;">Geri Dön</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let mode = 'pati';
+        let miniMap, miniMarker, mainMap;
+
+        function gecFormSayfasi() {
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('form-page').style.display = 'flex';
+            initMiniMap();
+        }
+
+        function sekmeDegis(newMode) {
+            mode = newMode;
+            document.getElementById('formTitle').innerText = mode === 'pati' ? 'Yeni Pati Ekle' : 'Yeni Besleme Noktası';
+            document.getElementById('patiFields').style.display = mode === 'pati' ? 'block' : 'none';
+            document.getElementById('beslemeFields').style.display = mode === 'besleme' ? 'block' : 'none';
+            document.getElementById('tabPati').classList.toggle('active', mode === 'pati');
+            document.getElementById('tabBesleme').classList.toggle('active', mode === 'besleme');
+        }
+
+        function initMiniMap() {
+            if(miniMap) return;
+            miniMap = L.map('miniMap').setView([39.93, 32.85], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+            miniMarker = L.marker([39.93, 32.85], {draggable: true}).addTo(miniMap);
+            miniMarker.on('dragend', () => {
+                let pos = miniMarker.getLatLng();
+                document.getElementById('lat').value = pos.lat;
+                document.getElementById('lng').value = pos.lng;
+            });
+        }
+
+        async function searchAddress() {
+            const query = document.getElementById('addressInput').value;
+            if(!query) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if(data.length > 0) {
+                const {lat, lon} = data[0];
+                miniMap.setView([lat, lon], 15);
+                miniMarker.setLatLng([lat, lon]);
+                document.getElementById('lat').value = lat;
+                document.getElementById('lng').value = lon;
+            } else { alert("Adres bulunamadı!"); }
+        }
+
+        document.getElementById('mainForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            const file = document.getElementById('fileInput').files[0];
+            if(file) fd.append('resim', file);
+            fd.append('lat', document.getElementById('lat').value);
+            fd.append('lng', document.getElementById('lng').value);
+            fd.append('saglik', document.getElementById('notlar').value);
+            fd.append('aciklama', document.getElementById('notlar').value);
+
+            if(mode === 'pati') {
+                fd.append('ad', document.getElementById('name').value);
+                fd.append('tur', document.getElementById('tur').value);
+                fd.append('cins', document.getElementById('cins').value);
+                fd.append('yas', document.getElementById('yas').value);
+                fd.append('sahip', document.getElementById('sahip').value);
+                await fetch('/api/kaydet', { method: 'POST', body: fd });
+            } else {
+                fd.append('yerAdi', document.getElementById('name').value);
+                fd.append('besleyenKisi', document.getElementById('besleyenKisi').value);
+                fd.append('kopekSayisi', document.getElementById('kopekSayi').value);
+                fd.append('kediSayisi', document.getElementById('kediSayi').value);
+                fd.append('kusSayisi', document.getElementById('kusSayi').value);
+                await fetch('/api/besleme/kaydet', { method: 'POST', body: fd });
+            }
+            alert("Kaydedildi!");
+            location.reload();
+        };
+
+        function gecHaritaSayfasi() {
+            document.getElementById('form-page').style.display = 'none';
+            document.getElementById('map-page').style.display = 'flex';
+            if(!mainMap) {
+                mainMap = L.map('mainMap').setView([39.0, 35.0], 6);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
+                loadMarkers();
+            }
+        }
+
+        async function loadMarkers() {
+            const [p, b] = await Promise.all([fetch('/api/patiler'), fetch('/api/besleme/listele')]);
+            const allData = [...await p.json(), ...await b.json()];
+            allData.forEach(item => {
+                if(item.lat && item.lng) {
+                    const img = item.resim || 'https://via.placeholder.com/50';
+                    L.marker([item.lat, item.lng]).addTo(mainMap).bindPopup(`
+                        <div style="text-align:center">
+                            <img src="${img}" style="width:80px; border-radius:8px"><br>
+                            <b>${item.ad || item.yerAdi}</b><br>
+                            <small>${item.saglik || item.aciklama}</small><br>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}" target="_blank" style="color:var(--primary)">Google Haritalar</a>
+                        </div>
+                    `);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
