@@ -8,29 +8,96 @@
     <style>
         :root { --primary: #e67e22; --neon-border: #8d4004; }
         body { font-family: 'Poppins', sans-serif; margin: 0; background: #fdfdfd; }
+        
         #landing-page { height: 100vh; display: flex; justify-content: center; align-items: center; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
         .hero-box { background: rgba(255, 255, 255, 0.95); padding: 50px; border-radius: 30px; border: 4px solid var(--neon-border); text-align: center; max-width: 600px; }
-        #form-page { display: none; min-height: 100vh; flex-direction: column; align-items: center; padding: 40px 20px; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
+        .entrance-list { text-align: left; font-size: 14px; margin: 20px 0; line-height: 1.6; }
+
+        #form-page, #map-page { display: none; min-height: 100vh; flex-direction: column; align-items: center; padding: 40px 20px; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
         .tabs { display: flex; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 15px; margin-bottom: 25px; width: 100%; max-width: 450px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 600; color: #666; transition: 0.3s; }
         .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .neon-frame { background: white; padding: 35px; border-radius: 30px; border: 6px solid var(--neon-border); box-shadow: 0 0 40px rgba(230, 126, 34, 0.4); width: 100%; max-width: 480px; }
-        .address-box { display: flex; gap: 8px; margin-bottom: 15px; }
-        .address-box input { flex: 1; border: 2px solid #eee; padding: 10px; border-radius: 10px; }
-        .btn-find { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: 'Poppins'; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; font-family: 'DM Serif Display'; transition: 0.3s; }
-        #map-page { display: none; padding: 20px; flex-direction: column; align-items: center; }
-        #mainMap { height: 600px; width: 95%; max-width: 1100px; border-radius: 25px; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        #map-container { display: flex; width: 95%; max-width: 1300px; height: 600px; gap: 15px; }
+        #mainMap { flex: 2; border-radius: 25px; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #side-panel { flex: 1; background: white; border-radius: 25px; padding: 20px; border: 4px solid var(--neon-border); overflow-y: auto; display: none; }
+        
+        .comment-box { background: #fdf2e9; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px; border-left: 5px solid var(--primary); animation: fadeIn 0.4s ease-out; position: relative; }
+        .comment-img { width: 100%; border-radius: 8px; margin-top: 5px; }
+        
+        .comment-actions { margin-top: 5px; display: flex; gap: 10px; justify-content: flex-end; }
+        .action-btn { background: none; border: none; font-size: 11px; cursor: pointer; color: #666; text-decoration: underline; }
+        .action-btn:hover { color: var(--primary); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* İKON CSS GÜNCELLEMESİ - RESMİN TAM GÖRÜNMESİ İÇİN */
+        .custom-marker { 
+            width: 50px; height: 50px; 
+            border-radius: 50%; 
+            border: 3px solid #fff; 
+            background-size: cover; /* Resmi kapla */
+            background-repeat: no-repeat;
+            background-position: center center; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.4); 
+            position: relative; 
+            background-color: #ddd; /* Resim yoksa gri */
+        }
+        .custom-marker::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #fff; }
+        .marker-fresh { border-color: #2ecc71 !important; } .marker-fresh::after { border-top-color: #2ecc71 !important; }
+        .marker-old { border-color: #e74c3c !important; } .marker-old::after { border-top-color: #e74c3c !important; }
+        
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        
+        /* Google Maps ve Silme Butonları */
+        .btn-maps { background: #4285F4; color: white; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box; }
+        .btn-delete { background: #e74c3c; color: white; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+
+        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .auth-box { background: white; padding: 30px; border-radius: 30px; max-width: 400px; width: 90%; border: 4px solid var(--neon-border); }
     </style>
 </head>
 <body>
 
+    <div id="auth-modal">
+        <div class="auth-box">
+            <h2 style="text-align:center; color:var(--neon-border); font-family:'DM Serif Display';">🛡️ Üye Girişi</h2>
+            
+            <div id="register-section">
+                <input type="text" id="regName" placeholder="Ad Soyad">
+                <input type="email" id="regEmail" placeholder="E-posta">
+                <input type="password" id="regPass" placeholder="Şifre Oluştur"> <input type="tel" id="regTel" placeholder="Telefon No">
+                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">📸 Selfie Fotoğrafınız (Güvenlik İçin):</label>
+                <input type="file" id="regSelfie" accept="image/*">
+                
+                <div style="margin: 10px 0; font-size: 12px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="kvkkCheck" style="width: auto; margin: 0;">
+                    <label for="kvkkCheck">KVKK Şartlarını okudum ve kabul ediyorum.</label>
+                </div>
+
+                <button onclick="kayitOl()" class="btn-save">Kayıt Ol</button>
+                <button onclick="toggleAuth(false)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer; font-size:13px;">Zaten üyeyim, giriş yap</button>
+            </div>
+
+            <div id="login-section" style="display:none;">
+                <input type="email" id="loginEmail" placeholder="E-posta adresiniz">
+                <input type="password" id="loginPass" placeholder="Şifreniz"> <button onclick="girisYap()" class="btn-save">Giriş Yap</button>
+                <button onclick="toggleAuth(true)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer;">Yeni kayıt oluştur</button>
+            </div>
+        </div>
+    </div>
+
     <div id="landing-page">
         <div class="hero-box">
-            <h1 style="font-family:'DM Serif Display'; font-size:40px; color:var(--neon-border);">Pati Takip Sistemi</h1>
-            <p>Canlarımızın yerini işaretleyin, durumlarını güncel tutun.</p>
-            <button onclick="gecFormSayfasi()" style="background:var(--primary); color:white; border:none; padding:15px 40px; border-radius:50px; font-size:20px; font-weight:bold; cursor:pointer;">Başla →</button>
+            <h1 style="font-family:'DM Serif Display'; font-size:38px; color:var(--neon-border); margin:0;">Pati Takip Sistemi 🐾</h1>
+            <div id="user-info" style="font-size:14px; margin:10px; font-weight:bold; color:var(--primary);"></div>
+            <div class="entrance-list"><b>Kullanım Rehberi:</b><br>• Haritadan konum seçip kayıt yap.<br>• 🟢 <b>Yeşil:</b> Son 3 gün güncel.<br>• 🔴 <b>Kırmızı:</b> Besleme yapılmadı!</div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="gecFormSayfasi()" class="btn-save" style="padding:15px 30px; border-radius:50px;">Yeni Pati Ekle →</button>
+                <button onclick="gecHaritaSayfasi()" style="background:#3498db; color:white; border:none; padding:15px 30px; border-radius:50px; font-size:18px; font-weight:bold; cursor:pointer;">Haritayı Gör</button>
+                <button onclick="logout()" style="background:#666; color:white; border:none; padding:10px; border-radius:50px; cursor:pointer;">Çıkış</button>
+            </div>
         </div>
     </div>
 
@@ -39,165 +106,215 @@
             <button id="tabPati" class="tab-btn active" onclick="sekmeDegis('pati')">🐾 Patiler</button>
             <button id="tabBesleme" class="tab-btn" onclick="sekmeDegis('besleme')">🍲 Besleme Noktaları</button>
         </div>
-
         <div class="neon-frame">
-            <h2 id="formTitle" style="font-family:'DM Serif Display'; text-align:center; color:var(--neon-border);">Yeni Pati Ekle</h2>
+            <h2 id="formTitle" style="text-align:center;">Yeni Pati Ekle</h2>
             
-            <div class="address-box">
-                <input type="text" id="addressInput" placeholder="Adres ara (Sokak, Mahalle...)">
-                <button class="btn-find" onclick="searchAddress()">Bul 🔍</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="addressInput" placeholder="Adres ara (Örn: Anıtkabir, Ankara)" style="margin:0; flex: 1;">
+                <button type="button" onclick="searchAddress()" class="btn-save" style="width: auto; padding: 0 20px; font-size: 14px;">Bul 🔍</button>
             </div>
             
             <div id="miniMap" style="height:200px; border-radius:15px; margin-bottom:15px; border:1px solid #ddd;"></div>
-            
             <form id="mainForm">
                 <input type="hidden" id="lat"> <input type="hidden" id="lng">
-                <input type="text" id="name" placeholder="Adı veya Bölge İsmi" required>
+                <input type="text" id="name" placeholder="Bölge / Konum İsmi (Örn: Elmar Towers Önü)" required>
                 
                 <div id="patiFields">
-                    <div style="display: flex; gap: 10px;">
-                        <select id="tur" style="flex:1;">
-                            <option value="Kedi">Kedi</option>
-                            <option value="Köpek">Köpek</option>
-                            <option value="Kuş">Kuş</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
-                        <input type="text" id="yas" placeholder="Yaşı (Örn: 2)" style="flex:1;">
+                    <input type="text" id="hayvanAdi" placeholder="Hayvanın Adı (Varsa: Boncuk, Pamuk vb.)">
+                    
+                    <div style="display:flex; gap:10px; align-items: flex-start;">
+                        <div style="flex:1;">
+                            <select id="tur" onchange="turKontrol(this)"><option value="Kedi">Kedi</option><option value="Köpek">Köpek</option><option value="Kuş">Kuş</option><option value="Diğer">Diğer...</option></select>
+                            <input type="text" id="turDiger" placeholder="Hangi Hayvan?" style="display:none; margin-top:5px; background:#fffaf0; border:1px solid var(--primary);">
+                        </div>
+                        <input type="text" id="yas" placeholder="Yaş" style="flex:1;">
                     </div>
-                    <input type="text" id="sahip" placeholder="Sahibi / Bulan Kişi">
-                    <input type="text" id="cins" placeholder="Cinsi (Örn: Tekir, Kanarya)">
+                    <input type="text" id="sahip" placeholder="Sorumlu Kişi">
                 </div>
-
-                <div id="beslemeFields" style="display:none;">
-                    <input type="text" id="besleyenKisi" placeholder="Gönüllü Besleyen Kişi">
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" id="kopekSayi" placeholder="🐕 Sayısı" style="flex:1;">
-                        <input type="number" id="kediSayi" placeholder="🐈 Sayısı" style="flex:1;">
-                        <input type="number" id="kusSayi" placeholder="🐦 Sayısı" style="flex:1;">
-                    </div>
-                </div>
-
-                <textarea id="notlar" placeholder="Sağlık durumu, ihtiyaçlar veya özel notlar..."></textarea>
                 
-                <div style="text-align:center; padding: 12px; border: 2px dashed #e67e22; border-radius: 12px; margin-bottom: 15px; background: #fffaf5;">
-                    <label for="fileInput" style="cursor:pointer; color: #d35400; font-weight: bold;">📸 Fotoğraf Seç</label>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none;">
-                </div>
-
+                <div id="beslemeFields" style="display:none;"><input type="text" id="besleyenKisi" placeholder="Gönüllü"></div>
+                <textarea id="notlar" placeholder="Özel notlar..."></textarea>
+                <input type="file" id="fileInput" accept="image/*">
                 <button type="submit" class="btn-save">Kaydet</button>
             </form>
-            <button onclick="gecHaritaSayfasi()" style="width:100%; margin-top:12px; background:#3498db; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">Haritayı Aç 🗺️</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="gecLandingSayfasi()" style="flex:1; background:#7f8c8d; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">← Geri</button>
+                <button onclick="gecHaritaSayfasi()" style="flex:1; background:#3498db; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">Harita →</button>
+            </div>
         </div>
     </div>
 
     <div id="map-page">
-        <h2 style="font-family:'DM Serif Display'; color:var(--neon-border);">Canlı GIS Haritası</h2>
-        <div id="mainMap"></div>
-        <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; border-radius:10px; border:none; background:var(--neon-border); color:white; cursor:pointer;">Geri Dön</button>
+        <div id="map-container">
+            <div id="mainMap"></div>
+            <div id="side-panel">
+                <div id="panelContent"></div>
+            </div>
+        </div>
+        <button onclick="gecLandingSayfasi()" style="margin-top:20px; padding:10px 20px; border-radius:10px; background:var(--neon-border); color:white; border:none; cursor:pointer;">Ana Sayfa</button>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let mode = 'pati';
-        let miniMap, miniMarker, mainMap;
+        let mode = 'pati', miniMap, miniMarker, mainMap, currentPatiId, currentUser = null;
 
-        function gecFormSayfasi() {
-            document.getElementById('landing-page').style.display = 'none';
-            document.getElementById('form-page').style.display = 'flex';
-            initMiniMap();
+        // --- AUTH ---
+        function toggleAuth(isReg) {
+            document.getElementById('register-section').style.display = isReg ? 'block' : 'none';
+            document.getElementById('login-section').style.display = isReg ? 'none' : 'block';
+        }
+        async function kayitOl() {
+            const fd = new FormData();
+            fd.append('adSoyad', document.getElementById('regName').value);
+            fd.append('eposta', document.getElementById('regEmail').value);
+            fd.append('sifre', document.getElementById('regPass').value);
+            fd.append('tel', document.getElementById('regTel').value);
+            fd.append('resim', document.getElementById('regSelfie').files[0]);
+
+            try {
+                const res = await fetch('/api/kayit-ol', { method: 'POST', body: fd });
+                const data = await res.json();
+                alert(data.mesaj);
+                if(res.ok) toggleAuth(false);
+            } catch (err) { alert("Hata oluştu."); }
+        }
+        async function girisYap() {
+            const res = await fetch('/api/giris-yap', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ eposta: document.getElementById('loginEmail').value, sifre: document.getElementById('loginPass').value })
+            });
+            if (res.ok) {
+                currentUser = await res.json();
+                localStorage.setItem('patiUser', JSON.stringify(currentUser));
+                checkAuth();
+            } else { alert("Hatalı giriş."); }
+        }
+        function checkAuth() {
+            const saved = localStorage.getItem('patiUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                document.getElementById('auth-modal').style.display = 'none';
+                document.getElementById('user-info').innerText = `👤 ${currentUser.adSoyad}`;
+            }
+        }
+        checkAuth();
+        function logout() { localStorage.removeItem('patiUser'); location.reload(); }
+
+        // --- NAVİGASYON ---
+        function gecLandingSayfasi() { document.getElementById('map-page').style.display = 'none'; document.getElementById('form-page').style.display = 'none'; document.getElementById('landing-page').style.display = 'flex'; }
+        function gecFormSayfasi() { if(!currentUser) return alert("Giriş yapın!"); document.getElementById('landing-page').style.display = 'none'; document.getElementById('form-page').style.display = 'flex'; if(!miniMap) initMiniMap(); setTimeout(() => miniMap.invalidateSize(), 200); }
+        function gecHaritaSayfasi() { if(!currentUser) return alert("Giriş yapın!"); document.getElementById('landing-page').style.display = 'none'; document.getElementById('form-page').style.display = 'none'; document.getElementById('map-page').style.display = 'flex'; if(!mainMap) { mainMap = L.map('mainMap').setView([39.9, 32.8], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap); } setTimeout(() => { mainMap.invalidateSize(); loadMarkers(); }, 500); }
+
+        function turKontrol(el) { document.getElementById('turDiger').style.display = el.value === 'Diğer' ? 'block' : 'none'; }
+        function initMiniMap() { miniMap = L.map('miniMap').setView([39.9, 32.8], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); miniMarker = L.marker([39.9, 32.8], {draggable: true}).addTo(miniMap); miniMarker.on('dragend', () => { const p = miniMarker.getLatLng(); document.getElementById('lat').value = p.lat; document.getElementById('lng').value = p.lng; }); }
+        
+        async function searchAddress() {
+            const q = document.getElementById('addressInput').value;
+            if(!q) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+            const data = await res.json();
+            if (data[0]) {
+                const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+                miniMap.setView([lat, lon], 16); miniMarker.setLatLng([lat, lon]);
+                document.getElementById('lat').value = lat; document.getElementById('lng').value = lon;
+            } else { alert("Adres bulunamadı."); }
         }
 
-        function sekmeDegis(newMode) {
-            mode = newMode;
-            document.getElementById('formTitle').innerText = mode === 'pati' ? 'Yeni Pati Ekle' : 'Yeni Besleme Noktası';
-            document.getElementById('patiFields').style.display = mode === 'pati' ? 'block' : 'none';
-            document.getElementById('beslemeFields').style.display = mode === 'besleme' ? 'block' : 'none';
-            document.getElementById('tabPati').classList.toggle('active', mode === 'pati');
-            document.getElementById('tabBesleme').classList.toggle('active', mode === 'besleme');
-        }
+        // --- KAYIT VE HARİTA ---
+        document.getElementById('mainForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            let secilenTur = document.getElementById('tur').value;
+            if(secilenTur === 'Diğer') secilenTur = document.getElementById('turDiger').value || 'Belirsiz';
+            
+            if(mode === 'pati') {
+                fd.set('tur', secilenTur);
+                fd.append('hayvanAdi', document.getElementById('hayvanAdi').value); // YENİ
+            }
+            const url = mode === 'pati' ? '/api/kaydet' : '/api/besleme/kaydet';
+            await fetch(url, { method: 'POST', body: fd });
+            alert("Kaydedildi!"); document.getElementById('mainForm').reset(); gecHaritaSayfasi();
+        };
 
-        function initMiniMap() {
-            if(miniMap) return;
-            miniMap = L.map('miniMap').setView([39.93, 32.85], 11);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-            miniMarker = L.marker([39.93, 32.85], {draggable: true}).addTo(miniMap);
-            miniMarker.on('dragend', () => {
-                let pos = miniMarker.getLatLng();
-                document.getElementById('lat').value = pos.lat;
-                document.getElementById('lng').value = pos.lng;
+        async function loadMarkers() {
+            mainMap.eachLayer(l => { if (l instanceof L.Marker) mainMap.removeLayer(l); });
+            const [pRes, bRes] = await Promise.all([fetch('/api/patiler').then(r => r.json()), fetch('/api/besleme/listele').then(r => r.json())]);
+            [...pRes, ...bRes].forEach(item => {
+                const lat = parseFloat(item.lat), lng = parseFloat(item.lng);
+                if(!isNaN(lat)) {
+                    const isFresh = (new Date() - new Date(item.sonGuncelleme)) / (1000 * 3600 * 24) <= 3;
+                    const statusClass = isFresh ? 'marker-fresh' : 'marker-old';
+                    // Resim URL'sini doğru formatla
+                    const imgUrl = item.resim ? item.resim.replace(/\\/g, '/') : '';
+                    
+                    const iconHtml = `<div class="custom-marker ${statusClass}" style="background-image: url('${imgUrl}');"></div>`;
+                    const icon = L.divIcon({ className: 'c-div', html: iconHtml, iconSize: [50, 65], iconAnchor: [25, 65] });
+                    
+                    const m = L.marker([lat, lng], {icon}).addTo(mainMap);
+                    
+                    // MARKER TIKLANINCA PANEL AÇ
+                    m.on('click', () => {
+                        currentPatiId = item._id;
+                        document.getElementById('side-panel').style.display = 'block';
+                        
+                        const baslik = item.hayvanAdi ? `${item.hayvanAdi} (${item.ad})` : (item.ad || item.yerAdi);
+                        const tarih = new Date(item.sonGuncelleme).toLocaleString('tr-TR');
+                        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                        // Panel İçeriğini Oluştur (Silme ve Harita Butonları Burada)
+                        document.getElementById('panelContent').innerHTML = `
+                            <h3 style="color:var(--neon-border); margin:0;">${baslik}</h3>
+                            <small style="color:#666; display:block; margin-bottom:10px;">Son Güncelleme: ${tarih}</small>
+                            <a href="${googleMapsLink}" target="_blank" class="btn-maps">📍 Konumu Google Maps'te Aç</a>
+                            <hr>
+                            <textarea id="updateText" placeholder="Durum güncellemesi yaz..."></textarea>
+                            <input type="file" id="updateImg" accept="image/*">
+                            <button onclick="saveUpdate()" class="btn-save" style="font-size:14px; padding:10px;">Paylaş 🚀</button>
+                            <div id="history"></div>
+                            <button onclick="kayitSil('${item._id}')" class="btn-delete">🗑️ Bu Kaydı Sil</button>
+                        `;
+                        renderComments(item);
+                    });
+                }
             });
         }
 
-        async function searchAddress() {
-            const query = document.getElementById('addressInput').value;
-            if(!query) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if(data.length > 0) {
-                const {lat, lon} = data[0];
-                miniMap.setView([lat, lon], 15);
-                miniMarker.setLatLng([lat, lon]);
-                document.getElementById('lat').value = lat;
-                document.getElementById('lng').value = lon;
-            } else { alert("Adres bulunamadı!"); }
+        function renderComments(item) {
+            document.getElementById('history').innerHTML = (item.yorumlar || []).reverse().map(y => `
+                <div class="comment-box">
+                    <b>${y.yazar || 'Gönüllü'}</b> <small>${new Date(y.tarih).toLocaleString('tr-TR')}</small><br>
+                    <span>${y.metin}</span>
+                    ${y.resim ? `<img src="${y.resim}" class="comment-img">` : ''}
+                    ${y.yazar === currentUser.adSoyad ? `<div class="comment-actions"><button class="action-btn" onclick="yorumSil('${item._id}', '${y._id}')">Sil</button></div>` : ''}
+                </div>`).join('');
         }
 
-        document.getElementById('mainForm').onsubmit = async (e) => {
-            e.preventDefault();
+        async function saveUpdate() {
+            if(!currentUser) return alert("Giriş yapın.");
             const fd = new FormData();
-            const file = document.getElementById('fileInput').files[0];
-            if(file) fd.append('resim', file);
-            fd.append('lat', document.getElementById('lat').value);
-            fd.append('lng', document.getElementById('lng').value);
-            fd.append('saglik', document.getElementById('notlar').value);
-            fd.append('aciklama', document.getElementById('notlar').value);
+            fd.append('id', currentPatiId); fd.append('metin', document.getElementById('updateText').value); fd.append('yazar', currentUser.adSoyad);
+            if(document.getElementById('updateImg').files[0]) fd.append('resim', document.getElementById('updateImg').files[0]);
+            
+            const res = await fetch('/api/guncelle', { method: 'POST', body: fd });
+            if(res.ok) { loadMarkers(); alert("Güncellendi!"); }
+        }
 
-            if(mode === 'pati') {
-                fd.append('ad', document.getElementById('name').value);
-                fd.append('tur', document.getElementById('tur').value);
-                fd.append('cins', document.getElementById('cins').value);
-                fd.append('yas', document.getElementById('yas').value);
-                fd.append('sahip', document.getElementById('sahip').value);
-                await fetch('/api/kaydet', { method: 'POST', body: fd });
-            } else {
-                fd.append('yerAdi', document.getElementById('name').value);
-                fd.append('besleyenKisi', document.getElementById('besleyenKisi').value);
-                fd.append('kopekSayisi', document.getElementById('kopekSayi').value);
-                fd.append('kediSayisi', document.getElementById('kediSayi').value);
-                fd.append('kusSayisi', document.getElementById('kusSayi').value);
-                await fetch('/api/besleme/kaydet', { method: 'POST', body: fd });
-            }
-            alert("Kaydedildi!");
-            location.reload();
-        };
-
-        function gecHaritaSayfasi() {
-            document.getElementById('form-page').style.display = 'none';
-            document.getElementById('map-page').style.display = 'flex';
-            if(!mainMap) {
-                mainMap = L.map('mainMap').setView([39.0, 35.0], 6);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
+        async function yorumSil(anaId, yorumId) {
+            if(confirm("Silinsin mi?")) {
+                await fetch('/api/yorum-sil', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ anaId, yorumId }) });
                 loadMarkers();
             }
         }
 
-        async function loadMarkers() {
-            const [p, b] = await Promise.all([fetch('/api/patiler'), fetch('/api/besleme/listele')]);
-            const allData = [...await p.json(), ...await b.json()];
-            allData.forEach(item => {
-                if(item.lat && item.lng) {
-                    const img = item.resim || 'https://via.placeholder.com/50';
-                    L.marker([item.lat, item.lng]).addTo(mainMap).bindPopup(`
-                        <div style="text-align:center">
-                            <img src="${img}" style="width:80px; border-radius:8px"><br>
-                            <b>${item.ad || item.yerAdi}</b><br>
-                            <small>${item.saglik || item.aciklama}</small><br>
-                            <a href="https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}" target="_blank" style="color:var(--primary)">Google Haritalar</a>
-                        </div>
-                    `);
-                }
-            });
+        async function kayitSil(id) {
+            if(confirm("Bu kaydı tamamen silmek istediğine emin misin?")) {
+                await fetch(`/api/sil/${id}`, { method: 'DELETE' });
+                document.getElementById('side-panel').style.display = 'none';
+                loadMarkers();
+            }
         }
+
+        function sekmeDegis(m) { mode = m; document.getElementById('patiFields').style.display = m === 'pati' ? 'block' : 'none'; document.getElementById('beslemeFields').style.display = m === 'besleme' ? 'block' : 'none'; }
     </script>
 </body>
 </html>
