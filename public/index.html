@@ -25,34 +25,22 @@
         
         .comment-box { background: #fdf2e9; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px; border-left: 5px solid var(--primary); animation: fadeIn 0.4s ease-out; position: relative; }
         .comment-img { width: 100%; border-radius: 8px; margin-top: 5px; }
-        
         .comment-actions { margin-top: 5px; display: flex; gap: 10px; justify-content: flex-end; }
         .action-btn { background: none; border: none; font-size: 11px; cursor: pointer; color: #666; text-decoration: underline; }
         .action-btn:hover { color: var(--primary); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* İKON CSS GÜNCELLEMESİ - RESMİN TAM GÖRÜNMESİ İÇİN */
-        .custom-marker { 
-            width: 50px; height: 50px; 
-            border-radius: 50%; 
-            border: 3px solid #fff; 
-            background-size: cover; /* Resmi kapla */
-            background-repeat: no-repeat;
-            background-position: center center; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.4); 
-            position: relative; 
-            background-color: #ddd; /* Resim yoksa gri */
-        }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+
+        .custom-marker { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #fff; background-size: cover; background-repeat: no-repeat; background-position: center center; box-shadow: 0 0 15px rgba(0,0,0,0.4); position: relative; background-color: #ddd; }
         .custom-marker::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #fff; }
         .marker-fresh { border-color: #2ecc71 !important; } .marker-fresh::after { border-top-color: #2ecc71 !important; }
         .marker-old { border-color: #e74c3c !important; } .marker-old::after { border-top-color: #e74c3c !important; }
         
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        
-        /* Google Maps ve Silme Butonları */
-        .btn-maps { background: #4285F4; color: white; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box; }
-        .btn-delete { background: #e74c3c; color: white; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-maps { background: #4285F4; color: white; width: 100%; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box; }
+        .btn-delete { background: #e74c3c; color: white; width: 100%; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
         #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .auth-box { background: white; padding: 30px; border-radius: 30px; max-width: 400px; width: 90%; border: 4px solid var(--neon-border); }
@@ -63,23 +51,19 @@
     <div id="auth-modal">
         <div class="auth-box">
             <h2 style="text-align:center; color:var(--neon-border); font-family:'DM Serif Display';">🛡️ Üye Girişi</h2>
-            
             <div id="register-section">
                 <input type="text" id="regName" placeholder="Ad Soyad">
                 <input type="email" id="regEmail" placeholder="E-posta">
                 <input type="password" id="regPass" placeholder="Şifre Oluştur"> <input type="tel" id="regTel" placeholder="Telefon No">
                 <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">📸 Selfie Fotoğrafınız (Güvenlik İçin):</label>
                 <input type="file" id="regSelfie" accept="image/*">
-                
                 <div style="margin: 10px 0; font-size: 12px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="kvkkCheck" style="width: auto; margin: 0;">
+                    <input type="checkbox" id="kvkkCheck" name="kvkk" style="width: auto; margin: 0;">
                     <label for="kvkkCheck">KVKK Şartlarını okudum ve kabul ediyorum.</label>
                 </div>
-
                 <button onclick="kayitOl()" class="btn-save">Kayıt Ol</button>
                 <button onclick="toggleAuth(false)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer; font-size:13px;">Zaten üyeyim, giriş yap</button>
             </div>
-
             <div id="login-section" style="display:none;">
                 <input type="email" id="loginEmail" placeholder="E-posta adresiniz">
                 <input type="password" id="loginPass" placeholder="Şifreniz"> <button onclick="girisYap()" class="btn-save">Giriş Yap</button>
@@ -115,28 +99,33 @@
             </div>
             
             <div id="miniMap" style="height:200px; border-radius:15px; margin-bottom:15px; border:1px solid #ddd;"></div>
+            
             <form id="mainForm">
-                <input type="hidden" id="lat"> <input type="hidden" id="lng">
-                <input type="text" id="name" placeholder="Bölge / Konum İsmi (Örn: Elmar Towers Önü)" required>
+                <input type="hidden" id="lat" name="lat"> 
+                <input type="hidden" id="lng" name="lng">
+                <input type="text" id="name" name="ad" placeholder="Bölge / Konum İsmi (Örn: Elmar Towers Önü)" required>
                 
                 <div id="patiFields">
-                    <input type="text" id="hayvanAdi" placeholder="Hayvanın Adı (Varsa: Boncuk, Pamuk vb.)">
+                    <input type="text" id="hayvanAdi" name="hayvanAdi" placeholder="Hayvanın Adı (Varsa: Boncuk, Pamuk vb.)">
                     
                     <div style="display:flex; gap:10px; align-items: flex-start;">
                         <div style="flex:1;">
-                            <select id="tur" onchange="turKontrol(this)"><option value="Kedi">Kedi</option><option value="Köpek">Köpek</option><option value="Kuş">Kuş</option><option value="Diğer">Diğer...</option></select>
+                            <select id="tur" name="tur" onchange="turKontrol(this)"><option value="Kedi">Kedi</option><option value="Köpek">Köpek</option><option value="Kuş">Kuş</option><option value="Diğer">Diğer...</option></select>
                             <input type="text" id="turDiger" placeholder="Hangi Hayvan?" style="display:none; margin-top:5px; background:#fffaf0; border:1px solid var(--primary);">
                         </div>
-                        <input type="text" id="yas" placeholder="Yaş" style="flex:1;">
+                        <input type="text" id="yas" name="yas" placeholder="Yaş" style="flex:1;">
                     </div>
-                    <input type="text" id="sahip" placeholder="Sorumlu Kişi">
+                    <input type="text" id="sahip" name="sahip" placeholder="Sorumlu Kişi">
                 </div>
                 
-                <div id="beslemeFields" style="display:none;"><input type="text" id="besleyenKisi" placeholder="Gönüllü"></div>
-                <textarea id="notlar" placeholder="Özel notlar..."></textarea>
-                <input type="file" id="fileInput" accept="image/*">
+                <div id="beslemeFields" style="display:none;"><input type="text" id="besleyenKisi" name="besleyenKisi" placeholder="Gönüllü"></div>
+                <textarea id="notlar" name="aciklama" placeholder="Özel notlar..."></textarea>
+                
+                <input type="file" id="fileInput" name="resim" accept="image/*">
+                
                 <button type="submit" class="btn-save">Kaydet</button>
             </form>
+            
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button onclick="gecLandingSayfasi()" style="flex:1; background:#7f8c8d; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">← Geri</button>
                 <button onclick="gecHaritaSayfasi()" style="flex:1; background:#3498db; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">Harita →</button>
@@ -154,167 +143,11 @@
         <button onclick="gecLandingSayfasi()" style="margin-top:20px; padding:10px 20px; border-radius:10px; background:var(--neon-border); color:white; border:none; cursor:pointer;">Ana Sayfa</button>
     </div>
 
+        <!-- Leaflet JS mutlaka kalsın -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        let mode = 'pati', miniMap, miniMarker, mainMap, currentPatiId, currentUser = null;
 
-        // --- AUTH ---
-        function toggleAuth(isReg) {
-            document.getElementById('register-section').style.display = isReg ? 'block' : 'none';
-            document.getElementById('login-section').style.display = isReg ? 'none' : 'block';
-        }
-        async function kayitOl() {
-            const fd = new FormData();
-            fd.append('adSoyad', document.getElementById('regName').value);
-            fd.append('eposta', document.getElementById('regEmail').value);
-            fd.append('sifre', document.getElementById('regPass').value);
-            fd.append('tel', document.getElementById('regTel').value);
-            fd.append('resim', document.getElementById('regSelfie').files[0]);
-
-            try {
-                const res = await fetch('/api/kayit-ol', { method: 'POST', body: fd });
-                const data = await res.json();
-                alert(data.mesaj);
-                if(res.ok) toggleAuth(false);
-            } catch (err) { alert("Hata oluştu."); }
-        }
-        async function girisYap() {
-            const res = await fetch('/api/giris-yap', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ eposta: document.getElementById('loginEmail').value, sifre: document.getElementById('loginPass').value })
-            });
-            if (res.ok) {
-                currentUser = await res.json();
-                localStorage.setItem('patiUser', JSON.stringify(currentUser));
-                checkAuth();
-            } else { alert("Hatalı giriş."); }
-        }
-        function checkAuth() {
-            const saved = localStorage.getItem('patiUser');
-            if (saved) {
-                currentUser = JSON.parse(saved);
-                document.getElementById('auth-modal').style.display = 'none';
-                document.getElementById('user-info').innerText = `👤 ${currentUser.adSoyad}`;
-            }
-        }
-        checkAuth();
-        function logout() { localStorage.removeItem('patiUser'); location.reload(); }
-
-        // --- NAVİGASYON ---
-        function gecLandingSayfasi() { document.getElementById('map-page').style.display = 'none'; document.getElementById('form-page').style.display = 'none'; document.getElementById('landing-page').style.display = 'flex'; }
-        function gecFormSayfasi() { if(!currentUser) return alert("Giriş yapın!"); document.getElementById('landing-page').style.display = 'none'; document.getElementById('form-page').style.display = 'flex'; if(!miniMap) initMiniMap(); setTimeout(() => miniMap.invalidateSize(), 200); }
-        function gecHaritaSayfasi() { if(!currentUser) return alert("Giriş yapın!"); document.getElementById('landing-page').style.display = 'none'; document.getElementById('form-page').style.display = 'none'; document.getElementById('map-page').style.display = 'flex'; if(!mainMap) { mainMap = L.map('mainMap').setView([39.9, 32.8], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap); } setTimeout(() => { mainMap.invalidateSize(); loadMarkers(); }, 500); }
-
-        function turKontrol(el) { document.getElementById('turDiger').style.display = el.value === 'Diğer' ? 'block' : 'none'; }
-        function initMiniMap() { miniMap = L.map('miniMap').setView([39.9, 32.8], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap); miniMarker = L.marker([39.9, 32.8], {draggable: true}).addTo(miniMap); miniMarker.on('dragend', () => { const p = miniMarker.getLatLng(); document.getElementById('lat').value = p.lat; document.getElementById('lng').value = p.lng; }); }
-        
-        async function searchAddress() {
-            const q = document.getElementById('addressInput').value;
-            if(!q) return;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-            const data = await res.json();
-            if (data[0]) {
-                const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-                miniMap.setView([lat, lon], 16); miniMarker.setLatLng([lat, lon]);
-                document.getElementById('lat').value = lat; document.getElementById('lng').value = lon;
-            } else { alert("Adres bulunamadı."); }
-        }
-
-        // --- KAYIT VE HARİTA ---
-        document.getElementById('mainForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            let secilenTur = document.getElementById('tur').value;
-            if(secilenTur === 'Diğer') secilenTur = document.getElementById('turDiger').value || 'Belirsiz';
-            
-            if(mode === 'pati') {
-                fd.set('tur', secilenTur);
-                fd.append('hayvanAdi', document.getElementById('hayvanAdi').value); // YENİ
-            }
-            const url = mode === 'pati' ? '/api/kaydet' : '/api/besleme/kaydet';
-            await fetch(url, { method: 'POST', body: fd });
-            alert("Kaydedildi!"); document.getElementById('mainForm').reset(); gecHaritaSayfasi();
-        };
-
-        async function loadMarkers() {
-            mainMap.eachLayer(l => { if (l instanceof L.Marker) mainMap.removeLayer(l); });
-            const [pRes, bRes] = await Promise.all([fetch('/api/patiler').then(r => r.json()), fetch('/api/besleme/listele').then(r => r.json())]);
-            [...pRes, ...bRes].forEach(item => {
-                const lat = parseFloat(item.lat), lng = parseFloat(item.lng);
-                if(!isNaN(lat)) {
-                    const isFresh = (new Date() - new Date(item.sonGuncelleme)) / (1000 * 3600 * 24) <= 3;
-                    const statusClass = isFresh ? 'marker-fresh' : 'marker-old';
-                    // Resim URL'sini doğru formatla
-                    const imgUrl = item.resim ? item.resim.replace(/\\/g, '/') : '';
-                    
-                    const iconHtml = `<div class="custom-marker ${statusClass}" style="background-image: url('${imgUrl}');"></div>`;
-                    const icon = L.divIcon({ className: 'c-div', html: iconHtml, iconSize: [50, 65], iconAnchor: [25, 65] });
-                    
-                    const m = L.marker([lat, lng], {icon}).addTo(mainMap);
-                    
-                    // MARKER TIKLANINCA PANEL AÇ
-                    m.on('click', () => {
-                        currentPatiId = item._id;
-                        document.getElementById('side-panel').style.display = 'block';
-                        
-                        const baslik = item.hayvanAdi ? `${item.hayvanAdi} (${item.ad})` : (item.ad || item.yerAdi);
-                        const tarih = new Date(item.sonGuncelleme).toLocaleString('tr-TR');
-                        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-
-                        // Panel İçeriğini Oluştur (Silme ve Harita Butonları Burada)
-                        document.getElementById('panelContent').innerHTML = `
-                            <h3 style="color:var(--neon-border); margin:0;">${baslik}</h3>
-                            <small style="color:#666; display:block; margin-bottom:10px;">Son Güncelleme: ${tarih}</small>
-                            <a href="${googleMapsLink}" target="_blank" class="btn-maps">📍 Konumu Google Maps'te Aç</a>
-                            <hr>
-                            <textarea id="updateText" placeholder="Durum güncellemesi yaz..."></textarea>
-                            <input type="file" id="updateImg" accept="image/*">
-                            <button onclick="saveUpdate()" class="btn-save" style="font-size:14px; padding:10px;">Paylaş 🚀</button>
-                            <div id="history"></div>
-                            <button onclick="kayitSil('${item._id}')" class="btn-delete">🗑️ Bu Kaydı Sil</button>
-                        `;
-                        renderComments(item);
-                    });
-                }
-            });
-        }
-
-        function renderComments(item) {
-            document.getElementById('history').innerHTML = (item.yorumlar || []).reverse().map(y => `
-                <div class="comment-box">
-                    <b>${y.yazar || 'Gönüllü'}</b> <small>${new Date(y.tarih).toLocaleString('tr-TR')}</small><br>
-                    <span>${y.metin}</span>
-                    ${y.resim ? `<img src="${y.resim}" class="comment-img">` : ''}
-                    ${y.yazar === currentUser.adSoyad ? `<div class="comment-actions"><button class="action-btn" onclick="yorumSil('${item._id}', '${y._id}')">Sil</button></div>` : ''}
-                </div>`).join('');
-        }
-
-        async function saveUpdate() {
-            if(!currentUser) return alert("Giriş yapın.");
-            const fd = new FormData();
-            fd.append('id', currentPatiId); fd.append('metin', document.getElementById('updateText').value); fd.append('yazar', currentUser.adSoyad);
-            if(document.getElementById('updateImg').files[0]) fd.append('resim', document.getElementById('updateImg').files[0]);
-            
-            const res = await fetch('/api/guncelle', { method: 'POST', body: fd });
-            if(res.ok) { loadMarkers(); alert("Güncellendi!"); }
-        }
-
-        async function yorumSil(anaId, yorumId) {
-            if(confirm("Silinsin mi?")) {
-                await fetch('/api/yorum-sil', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ anaId, yorumId }) });
-                loadMarkers();
-            }
-        }
-
-        async function kayitSil(id) {
-            if(confirm("Bu kaydı tamamen silmek istediğine emin misin?")) {
-                await fetch(`/api/sil/${id}`, { method: 'DELETE' });
-                document.getElementById('side-panel').style.display = 'none';
-                loadMarkers();
-            }
-        }
-
-        function sekmeDegis(m) { mode = m; document.getElementById('patiFields').style.display = m === 'pati' ? 'block' : 'none'; document.getElementById('beslemeFields').style.display = m === 'besleme' ? 'block' : 'none'; }
-    </script>
+    <!-- Bizim JS dosyamız -->
+    <script src="app.js"></script>
 </body>
 </html>
+
