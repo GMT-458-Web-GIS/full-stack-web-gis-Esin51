@@ -100,9 +100,26 @@ function checkAuth() {
     if (saved) {
         currentUser = JSON.parse(saved);
         document.getElementById('auth-modal').style.display = 'none';
-    document.getElementById('user-info').innerText =
-  `👤 ${currentUser.adSoyad} (${roleLabel(currentUser.rol)})`;
+    function checkAuth() {
+    const saved = localStorage.getItem('patiUser');
+    if (saved) {
+        currentUser = JSON.parse(saved);
 
+        // 1. Modal'ı kapat (Hata korumalı)
+        const modal = document.getElementById('auth-modal');
+        if (modal) modal.style.display = 'none';
+
+        // 2. Kullanıcı ismini yaz (Hata korumalı)
+        const userInfoBox = document.getElementById('user-info');
+        if (userInfoBox) {
+            // Eğer kutu varsa içine yaz
+            userInfoBox.innerText = `👤 ${currentUser.adSoyad} (${roleLabel(currentUser.rol)})`;
+        } else {
+            // Kutu yoksa hata verip durma, sadece konsola not düş ve devam et
+            console.log("Uyarı: user-info kutusu bulunamadı, ama sistem çalışmaya devam ediyor.");
+        }
+    }
+}
     }
 }
 checkAuth();
