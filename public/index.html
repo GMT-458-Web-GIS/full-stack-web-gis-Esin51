@@ -1,153 +1,701 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Pati Takip & GIS 🐾</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root { --primary: #e67e22; --neon-border: #8d4004; }
-        body { font-family: 'Poppins', sans-serif; margin: 0; background: #fdfdfd; }
-        
-        #landing-page { height: 100vh; display: flex; justify-content: center; align-items: center; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
-        .hero-box { background: rgba(255, 255, 255, 0.95); padding: 50px; border-radius: 30px; border: 4px solid var(--neon-border); text-align: center; max-width: 600px; }
-        .entrance-list { text-align: left; font-size: 14px; margin: 20px 0; line-height: 1.6; }
+  <meta charset="UTF-8">
+  <title>Pati Takip & GIS 🐾</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-        #form-page, #map-page { display: none; min-height: 100vh; flex-direction: column; align-items: center; padding: 40px 20px; background-image: url('images/bg-bottom.png'); background-repeat: no-repeat; background-position: bottom center; background-size: 100% auto; background-attachment: fixed; }
-        .tabs { display: flex; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 15px; margin-bottom: 25px; width: 100%; max-width: 450px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 600; color: #666; transition: 0.3s; }
-        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .neon-frame { background: white; padding: 35px; border-radius: 30px; border: 6px solid var(--neon-border); box-shadow: 0 0 40px rgba(230, 126, 34, 0.4); width: 100%; max-width: 480px; }
-        
-        #map-container { display: flex; width: 95%; max-width: 1300px; height: 600px; gap: 15px; }
-        #mainMap { flex: 2; border-radius: 25px; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        #side-panel { flex: 1; background: white; border-radius: 25px; padding: 20px; border: 4px solid var(--neon-border); overflow-y: auto; display: none; }
-        
-        .comment-box { background: #fdf2e9; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px; border-left: 5px solid var(--primary); animation: fadeIn 0.4s ease-out; position: relative; }
-        .comment-img { width: 100%; border-radius: 8px; margin-top: 5px; }
-        .comment-actions { margin-top: 5px; display: flex; gap: 10px; justify-content: flex-end; }
-        .action-btn { background: none; border: none; font-size: 11px; cursor: pointer; color: #666; text-decoration: underline; }
-        .action-btn:hover { color: var(--primary); }
+  <style>
+    :root {
+      --primary: #e67e22;
+      --neon-border: #8d4004;
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+      /* ✅ glass theme */
+      --glass-bg: rgba(255,255,255,0.62);
+      --glass-border: rgba(141,64,4,0.35);
+    }
 
-        .custom-marker { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #fff; background-size: cover; background-repeat: no-repeat; background-position: center center; box-shadow: 0 0 15px rgba(0,0,0,0.4); position: relative; background-color: #ddd; }
-        .custom-marker::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #fff; }
-        .marker-fresh { border-color: #2ecc71 !important; } .marker-fresh::after { border-top-color: #2ecc71 !important; }
-        .marker-old { border-color: #e74c3c !important; } .marker-old::after { border-top-color: #e74c3c !important; }
-        
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .btn-maps { background: #4285F4; color: white; width: 100%; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: inline-block; text-align: center; box-sizing: border-box; }
-        .btn-delete { background: #e74c3c; color: white; width: 100%; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+    body { font-family: 'Poppins', sans-serif; margin: 0; background: #fdfdfd; }
 
-        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .auth-box { background: white; padding: 30px; border-radius: 30px; max-width: 400px; width: 90%; border: 4px solid var(--neon-border); }
-    </style>
+    #landing-page {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-image: url('images/bg-bottom.png');
+      background-repeat: no-repeat;
+      background-position: bottom center;
+      background-size: 100% auto;
+      background-attachment: fixed;
+      padding: 20px;
+    }
+
+    /* ✅ HERO box modernized */
+    .hero-box {
+      position: relative;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+
+      border-radius: 28px;
+      border: 2px solid var(--glass-border);
+      box-shadow:
+        0 18px 45px rgba(0,0,0,0.12),
+        0 0 0 1px rgba(255,255,255,0.35) inset;
+
+      padding: 44px;
+    }
+
+    .hero-title{
+      font-family:'DM Serif Display';
+      font-size: 46px;
+      color: var(--neon-border);
+      margin: 0;
+      letter-spacing: .2px;
+    }
+
+    .hero-subtitle{
+      margin-top: 8px;
+      font-size: 14px;
+      color: #444;
+      opacity: .92;
+    }
+
+    /* ✅ user pill */
+    .user-pill{
+      display: none; /* js açacak */
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      margin: 14px auto 0;
+      width: fit-content;
+    }
+    .user-avatar{
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(230,126,34,0.35);
+      background: #eee;
+    }
+    .user-text{
+      display:flex;
+      flex-direction: column;
+      line-height: 1.1;
+      text-align: left;
+    }
+    .user-welcome{
+      font-size: 12px;
+      color: #666;
+      font-weight: 700;
+    }
+    .user-name{
+      font-size: 14px;
+      color: var(--primary);
+      font-weight: 900;
+    }
+    .user-role{
+      font-size: 12px;
+      color: #777;
+      font-weight: 700;
+    }
+
+    /* ✅ exit on top-right */
+    .top-actions{
+      position: absolute;
+      top: 16px;
+      right: 16px;
+    }
+    .logout-link{
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.75);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 800;
+      color: #444;
+    }
+
+    .entrance-list {
+      text-align: left;
+      font-size: 14px;
+      margin: 18px 0 0;
+      line-height: 1.65;
+
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    /* ✅ CTA layout */
+    .hero-actions{
+      display:flex;
+      gap: 12px;
+      justify-content:center;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .btn-primary{
+      background: var(--primary);
+      color:#fff;
+      border:none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor:pointer;
+      box-shadow: 0 14px 30px rgba(230,126,34,0.28);
+    }
+    .btn-secondary{
+      background: rgba(52,152,219,0.12);
+      color:#1c6fb0;
+      border: 1px solid rgba(52,152,219,0.35);
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+
+    /* ====== rest (senin mevcut CSS) ====== */
+    #form-page, #map-page {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      background-image: url('images/bg-bottom.png');
+      background-repeat: no-repeat;
+      background-position: bottom center;
+      background-size: 100% auto;
+      background-attachment: fixed;
+    }
+
+    .tabs { display: flex; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 15px; margin-bottom: 25px; width: 100%; max-width: 450px; }
+    .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 600; color: #666; transition: 0.3s; }
+    .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    /* ✅ Form container biraz daha modern */
+    .neon-frame {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 28px;
+      border-radius: 26px;
+      border: 3px solid rgba(141,64,4,0.35);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    #map-container { display: flex; width: 95%; max-width: 1300px; height: 600px; gap: 15px; }
+    #mainMap { flex: 2; border-radius: 25px; border: 8px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    #side-panel { flex: 1; background: white; border-radius: 25px; padding: 20px; border: 4px solid var(--neon-border); overflow-y: auto; display: none; }
+
+    .comment-box { background: #fdf2e9; padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px; border-left: 5px solid var(--primary); animation: fadeIn 0.4s ease-out; position: relative; }
+    .comment-img { width: 100%; border-radius: 8px; margin-top: 5px; }
+    .comment-actions { margin-top: 5px; display: flex; gap: 10px; justify-content: flex-end; }
+    .action-btn { background: none; border: none; font-size: 11px; cursor: pointer; color: #666; text-decoration: underline; }
+    .action-btn:hover { color: var(--primary); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+
+    .custom-marker { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #fff; background-size: cover; background-repeat: no-repeat; background-position: center center; box-shadow: 0 0 15px rgba(0,0,0,0.4); position: relative; background-color: #ddd; }
+    .custom-marker::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #fff; }
+    .marker-fresh { border-color: #2ecc71 !important; } .marker-fresh::after { border-top-color: #2ecc71 !important; }
+    .marker-old { border-color: #e74c3c !important; } .marker-old::after { border-top-color: #e74c3c !important; }
+
+    input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+    .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+    #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    .auth-box { background: white; padding: 30px; border-radius: 30px; max-width: 400px; width: 90%; border: 4px solid var(--neon-border); }
+
+    .filter-bar {
+      width: 95%;
+      max-width: 1300px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.9);
+      border: 2px solid var(--neon-border);
+      border-radius: 16px;
+      padding: 10px;
+    }
+    .filter-bar select, .filter-bar input {
+      width: auto;
+      margin: 0;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .filter-btn {
+      width: auto;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--primary);
+      color: white;
+    }
+
+    /* ✅ Yeni: Form section tasarımı */
+    .form-section{
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 16px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+    .form-section h3{
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #333;
+    }
+    .form-section p{
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.45;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .chip{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fffaf0;
+      font-size: 13px;
+      font-weight: 700;
+      color:#444;
+    }
+    .chip input{
+      width:auto;
+      margin:0;
+    }
+    .readonly{
+      background:#f7f7f7 !important;
+    }
+
+    /* ✅ Form başlığı */
+    .form-header{
+      text-align:center;
+      margin-bottom: 12px;
+    }
+    .form-header h2{
+      margin: 0;
+      font-size: 22px;
+      font-weight: 900;
+      color:#222;
+    }
+    .form-header .hint{
+      margin-top: 6px;
+      font-size: 12px;
+      color:#666;
+    }
+
+    /* ✅ miniMap çerçevesi */
+    #miniMap{
+      border-radius: 16px !important;
+      border: 1px solid rgba(0,0,0,0.10) !important;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.10);
+    }
+/* ===== Global Glass Card / CTA (landing ile aynı dil) ===== */
+.glass-card {
+  background: rgba(255,255,255,0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(141,64,4,0.35);
+  border-radius: 26px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.12),
+              0 0 0 1px rgba(255,255,255,0.35) inset;
+}
+
+.btn-pill-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(230,126,34,0.28);
+}
+
+.btn-pill-secondary {
+  background: rgba(52,152,219,0.12);
+  color: #1c6fb0;
+  border: 1px solid rgba(52,152,219,0.35);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-pill-muted {
+  background: rgba(255,255,255,0.7);
+  color: #444;
+  border: 1px solid rgba(0,0,0,0.12);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ===== Form Page arka plan saydam + frame glass ===== */
+#form-page .neon-frame{
+  background: rgba(255,255,255,0.62) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(141,64,4,0.35) !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.12),
+              0 0 0 1px rgba(255,255,255,0.35) inset !important;
+}
+
+/* Kaydet/Geri/Harita butonlarını landing diline çek */
+#form-page .btn-save{
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 14px 30px rgba(230,126,34,0.28);
+}
+
+/* Form altındaki geri/harita butonları */
+.form-nav-row{
+  display:flex;
+  gap:12px;
+  margin-top: 15px;
+}
+.form-nav-row button{
+  flex:1;
+}
+
+/* ===== Map Page Filtre bar = glass + pill ===== */
+#map-page .filter-bar{
+  background: rgba(255,255,255,0.62) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(141,64,4,0.35) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.12),
+              0 0 0 1px rgba(255,255,255,0.35) inset !important;
+  padding: 12px !important;
+}
+
+#map-page .filter-bar select,
+#map-page .filter-bar input{
+  border-radius: 999px !important;
+  padding: 10px 14px !important;
+  border: 1px solid rgba(0,0,0,0.12) !important;
+  background: rgba(255,255,255,0.8) !important;
+  font-weight: 700;
+}
+
+#map-page .filter-btn{
+  border-radius: 999px !important;
+  font-weight: 900 !important;
+  padding: 10px 18px !important;
+}
+
+/* ===== Map Page alttaki Ana Sayfa butonu = landing tarzı ===== */
+.map-bottom-actions{
+  width: 95%;
+  max-width: 1300px;
+  display:flex;
+  justify-content:center;
+  margin-top: 16px;
+}
+
+  </style>
 </head>
+
 <body>
 
-    <div id="auth-modal">
-        <div class="auth-box">
-            <h2 style="text-align:center; color:var(--neon-border); font-family:'DM Serif Display';">🛡️ Üye Girişi</h2>
-            <div id="register-section">
-                <input type="text" id="regName" placeholder="Ad Soyad">
-                <input type="email" id="regEmail" placeholder="E-posta">
-                <input type="password" id="regPass" placeholder="Şifre Oluştur"> <input type="tel" id="regTel" placeholder="Telefon No">
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">📸 Selfie Fotoğrafınız (Güvenlik İçin):</label>
-                <input type="file" id="regSelfie" accept="image/*">
-                <div style="margin: 10px 0; font-size: 12px; display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="kvkkCheck" name="kvkk" style="width: auto; margin: 0;">
-                    <label for="kvkkCheck">KVKK Şartlarını okudum ve kabul ediyorum.</label>
-                </div>
-                <button onclick="kayitOl()" class="btn-save">Kayıt Ol</button>
-                <button onclick="toggleAuth(false)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer; font-size:13px;">Zaten üyeyim, giriş yap</button>
-            </div>
-            <div id="login-section" style="display:none;">
-                <input type="email" id="loginEmail" placeholder="E-posta adresiniz">
-                <input type="password" id="loginPass" placeholder="Şifreniz"> <button onclick="girisYap()" class="btn-save">Giriş Yap</button>
-                <button onclick="toggleAuth(true)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer;">Yeni kayıt oluştur</button>
-            </div>
+  <div id="auth-modal">
+    <div class="auth-box">
+      <h2 style="text-align:center; color:var(--neon-border); font-family:'DM Serif Display';">🛡️ Üye Girişi</h2>
+
+      <div id="register-section">
+        <input type="text" id="regName" placeholder="Ad Soyad">
+        <input type="email" id="regEmail" placeholder="E-posta">
+        <input type="password" id="regPass" placeholder="Şifre Oluştur">
+        <input type="tel" id="regTel" placeholder="Telefon No">
+        <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">📸 Selfie Fotoğrafınız (Güvenlik İçin):</label>
+        <input type="file" id="regSelfie" accept="image/*">
+        <div style="margin: 10px 0; font-size: 12px; display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="kvkkCheck" name="kvkk" style="width: auto; margin: 0;">
+          <label for="kvkkCheck">KVKK Şartlarını okudum ve kabul ediyorum.</label>
         </div>
+        <button onclick="kayitOl()" class="btn-save">Kayıt Ol</button>
+        <button onclick="toggleAuth(false)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer; font-size:13px;">Zaten üyeyim, giriş yap</button>
+      </div>
+
+      <div id="login-section" style="display:none;">
+        <input type="email" id="loginEmail" placeholder="E-posta adresiniz">
+        <input type="password" id="loginPass" placeholder="Şifreniz">
+        <button onclick="girisYap()" class="btn-save">Giriş Yap</button>
+        <button onclick="toggleAuth(true)" style="background:none; border:none; color:blue; width:100%; margin-top:10px; cursor:pointer;">Yeni kayıt oluştur</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ LANDING -->
+  <div id="landing-page">
+    <div class="hero-box">
+
+      <div class="top-actions">
+        <button onclick="logout()" class="logout-link">Çıkış</button>
+      </div>
+
+      <h1 class="hero-title">Pati Takip Sistemi 🐾</h1>
+      <div class="hero-subtitle">GIS tabanlı kayıt ve besleme takibi</div>
+
+      <!-- ✅ user -->
+      <div id="user-pill" class="user-pill">
+        <img id="user-avatar" class="user-avatar" src="" alt="Profil">
+        <div class="user-text">
+          <span class="user-welcome">Hoş geldin 👋</span>
+          <span id="user-name" class="user-name"></span>
+          <span id="user-role" class="user-role"></span>
+        </div>
+      </div>
+
+      <div class="entrance-list">
+        <b>Sistem Kullanım Özeti</b><br>
+        • <b>Konum Tabanlı Kayıt:</b> Harita üzerinden konum seçilerek pati veya besleme noktası kaydı oluşturulabilir.<br>
+        • 🟢 <b>Güncel Kayıt (Yeşil):</b> Son 3 gün içinde güncelleme yapılmış, aktif olarak takip edilen kayıtları temsil eder.<br>
+        • 🔴 <b>Güncellenmemiş Kayıt (Kırmızı):</b> Uzun süredir güncelleme yapılmamış; besleme durumu, sağlık bilgileri veya yapılan aşılar gibi verilerin yeniden girilmesi gereken noktaları ifade eder.
+      </div>
+
+      <div class="hero-actions">
+        <button onclick="gecHaritaSayfasi()" class="btn-primary">Haritayı Gör</button>
+        <button onclick="gecFormSayfasi()" class="btn-secondary">Yeni Pati Ekle</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ✅ FORM PAGE -->
+  <div id="form-page">
+    <div class="tabs">
+      <button id="tabPati" class="tab-btn active" onclick="sekmeDegis('pati')">🐾 Patiler</button>
+      <button id="tabBesleme" class="tab-btn" onclick="sekmeDegis('besleme')">🍲 Besleme Noktaları</button>
     </div>
 
-    <div id="landing-page">
-        <div class="hero-box">
-            <h1 style="font-family:'DM Serif Display'; font-size:38px; color:var(--neon-border); margin:0;">Pati Takip Sistemi 🐾</h1>
-            <div id="user-info" style="font-size:14px; margin:10px; font-weight:bold; color:var(--primary);"></div>
-            <div class="entrance-list"><b>Kullanım Rehberi:</b><br>• Haritadan konum seçip kayıt yap.<br>• 🟢 <b>Yeşil:</b> Son 3 gün güncel.<br>• 🔴 <b>Kırmızı:</b> Besleme yapılmadı!</div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="gecFormSayfasi()" class="btn-save" style="padding:15px 30px; border-radius:50px;">Yeni Pati Ekle →</button>
-                <button onclick="gecHaritaSayfasi()" style="background:#3498db; color:white; border:none; padding:15px 30px; border-radius:50px; font-size:18px; font-weight:bold; cursor:pointer;">Haritayı Gör</button>
-                <button onclick="logout()" style="background:#666; color:white; border:none; padding:10px; border-radius:50px; cursor:pointer;">Çıkış</button>
+    <div class="neon-frame">
+
+      <div class="form-header">
+        <h2 id="formTitle">Yeni Pati Ekle</h2>
+        <div class="hint">Önce adresi bul veya haritadan konum seç. Sonra bilgileri girip kaydet.</div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <input type="text" id="addressInput" placeholder="Adres ara (Örn: Anıtkabir, Ankara)" style="margin:0; flex: 1;">
+        <button type="button" onclick="searchAddress()" class="btn-save" style="width: auto; padding: 0 20px; font-size: 14px;">Bul 🔍</button>
+      </div>
+
+      <div id="miniMap" style="height:200px; margin-bottom:15px;"></div>
+
+      <!-- ✅ FORM (geliştirildi) -->
+      <form id="mainForm">
+        <input type="hidden" id="lat" name="lat">
+        <input type="hidden" id="lng" name="lng">
+
+        <div class="form-section">
+          <h3>🐾 Temel Bilgiler</h3>
+          <p>Konum ve temel tanımlama bilgilerini girin.</p>
+
+          <input type="text" id="name" name="ad" placeholder="Bölge / Konum İsmi (Örn: Elmar Towers Önü)" required>
+
+          <div id="patiFields">
+            <input type="text" id="hayvanAdi" name="hayvanAdi" placeholder="Hayvanın Adı (Varsa: Boncuk, Pamuk vb.)">
+
+            <div style="display:flex; gap:10px; align-items: flex-start;">
+              <div style="flex:1;">
+                <select id="tur" name="tur" onchange="turKontrol(this)">
+                  <option value="Kedi">Kedi</option>
+                  <option value="Köpek">Köpek</option>
+                  <option value="Kuş">Kuş</option>
+                  <option value="Diğer">Diğer...</option>
+                </select>
+                <input type="text" id="turDiger" placeholder="Hangi Hayvan?" style="display:none; margin-top:5px; background:#fffaf0; border:1px solid var(--primary);">
+              </div>
+              <input type="text" id="yas" name="yas" placeholder="Yaş" style="flex:1;">
             </div>
+
+            <input type="text" id="sahip" name="sahip" placeholder="Sorumlu Kişi (Varsa)">
+          </div>
+
+          <div id="beslemeFields" style="display:none;">
+            <input type="text" id="besleyenKisi" name="besleyenKisi" placeholder="Gönüllü" class="readonly" readonly>
+          </div>
         </div>
+
+        <div class="form-section" id="healthSection">
+          <h3>🩺 Sağlık & Durum</h3>
+          <p>Aşı, kısırlaştırma, yaralanma gibi bilgileri ekleyin. (İstersen boş bırak)</p>
+
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="asiVar" name="asiVar"> Aşılı</label>
+            <label class="chip"><input type="checkbox" id="kisir" name="kisir"> Kısırlaştırılmış</label>
+            <label class="chip"><input type="checkbox" id="yarali" name="yarali"> Yaralı / Tedavi</label>
+            <label class="chip"><input type="checkbox" id="hamile" name="hamile"> Hamile</label>
+          </div>
+
+          <input type="text" id="asiDetay" name="asiDetay" placeholder="Aşı Detayı (Örn: Karma, Kuduz, Parazit) — opsiyonel">
+          <textarea id="saglikNotu" name="saglikNotu" placeholder="Sağlık Notu (Örn: topallıyor, kulak küpesi var, veterinere götürüldü...)"></textarea>
+        </div>
+
+        <div class="form-section">
+          <h3>📝 Gözlem & Notlar</h3>
+          <p>Bu alan “güncelleme” mantığını güçlendirir. Sonradan tekrar açıp durum güncellemesi yapabilirsin.</p>
+
+          <textarea id="notlar" name="aciklama" placeholder="Özel notlar..."></textarea>
+          <input type="file" id="fileInput" name="resim" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn-save">Kaydet</button>
+      </form>
+
+      <div class="form-nav-row">
+  <button onclick="gecLandingSayfasi()" class="btn-pill-muted">← Geri</button>
+  <button onclick="gecHaritaSayfasi()" class="btn-pill-secondary">Harita →</button>
+</div>
+
+
+    </div>
+  </div>
+
+  <!-- ✅ MAP PAGE -->
+  <div id="map-page">
+    <div class="filter-bar">
+      <select id="filterDataset">
+        <option value="all">Hepsi</option>
+        <option value="pati">Patiler</option>
+        <option value="besleme">Besleme</option>
+      </select>
+
+      <select id="filterFresh">
+        <option value="all">Güncellik: Hepsi</option>
+        <option value="fresh">Sadece Yeşil (≤3 gün)</option>
+        <option value="old">Sadece Kırmızı (>3 gün)</option>
+      </select>
+
+      <select id="filterTur">
+        <option value="all">Tür: Hepsi</option>
+        <option value="Kedi">Kedi</option>
+        <option value="Köpek">Köpek</option>
+        <option value="Kuş">Kuş</option>
+        <option value="Diğer">Diğer</option>
+      </select>
+
+      <input id="filterQ" placeholder="Ara: ad / yer / hayvan adı" />
+      <button class="filter-btn" onclick="applyFilters()">Filtrele</button>
+      <button class="filter-btn" style="background:#666" onclick="resetFilters()">Sıfırla</button>
     </div>
 
-    <div id="form-page">
-        <div class="tabs">
-            <button id="tabPati" class="tab-btn active" onclick="sekmeDegis('pati')">🐾 Patiler</button>
-            <button id="tabBesleme" class="tab-btn" onclick="sekmeDegis('besleme')">🍲 Besleme Noktaları</button>
-        </div>
-        <div class="neon-frame">
-            <h2 id="formTitle" style="text-align:center;">Yeni Pati Ekle</h2>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="text" id="addressInput" placeholder="Adres ara (Örn: Anıtkabir, Ankara)" style="margin:0; flex: 1;">
-                <button type="button" onclick="searchAddress()" class="btn-save" style="width: auto; padding: 0 20px; font-size: 14px;">Bul 🔍</button>
-            </div>
-            
-            <div id="miniMap" style="height:200px; border-radius:15px; margin-bottom:15px; border:1px solid #ddd;"></div>
-            
-            <form id="mainForm">
-                <input type="hidden" id="lat" name="lat"> 
-                <input type="hidden" id="lng" name="lng">
-                <input type="text" id="name" name="ad" placeholder="Bölge / Konum İsmi (Örn: Elmar Towers Önü)" required>
-                
-                <div id="patiFields">
-                    <input type="text" id="hayvanAdi" name="hayvanAdi" placeholder="Hayvanın Adı (Varsa: Boncuk, Pamuk vb.)">
-                    
-                    <div style="display:flex; gap:10px; align-items: flex-start;">
-                        <div style="flex:1;">
-                            <select id="tur" name="tur" onchange="turKontrol(this)"><option value="Kedi">Kedi</option><option value="Köpek">Köpek</option><option value="Kuş">Kuş</option><option value="Diğer">Diğer...</option></select>
-                            <input type="text" id="turDiger" placeholder="Hangi Hayvan?" style="display:none; margin-top:5px; background:#fffaf0; border:1px solid var(--primary);">
-                        </div>
-                        <input type="text" id="yas" name="yas" placeholder="Yaş" style="flex:1;">
-                    </div>
-                    <input type="text" id="sahip" name="sahip" placeholder="Sorumlu Kişi">
-                </div>
-                
-                <div id="beslemeFields" style="display:none;"><input type="text" id="besleyenKisi" name="besleyenKisi" placeholder="Gönüllü"></div>
-                <textarea id="notlar" name="aciklama" placeholder="Özel notlar..."></textarea>
-                
-                <input type="file" id="fileInput" name="resim" accept="image/*">
-                
-                <button type="submit" class="btn-save">Kaydet</button>
-            </form>
-            
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="gecLandingSayfasi()" style="flex:1; background:#7f8c8d; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">← Geri</button>
-                <button onclick="gecHaritaSayfasi()" style="flex:1; background:#3498db; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">Harita →</button>
-            </div>
-        </div>
+    <div id="map-container">
+      <div id="mainMap"></div>
+      <div id="side-panel">
+        <div id="panelContent"></div>
+      </div>
     </div>
 
-    <div id="map-page">
-        <div id="map-container">
-            <div id="mainMap"></div>
-            <div id="side-panel">
-                <div id="panelContent"></div>
-            </div>
-        </div>
-        <button onclick="gecLandingSayfasi()" style="margin-top:20px; padding:10px 20px; border-radius:10px; background:var(--neon-border); color:white; border:none; cursor:pointer;">Ana Sayfa</button>
-    </div>
+    <div class="map-bottom-actions">
+  <button onclick="gecLandingSayfasi()" class="btn-pill-primary">Ana Sayfa</button>
+</div>
 
-        <!-- Leaflet JS mutlaka kalsın -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </div>
 
-    <!-- Bizim JS dosyamız -->
-    <script src="app.js"></script>
+  <script>
+    // ✅ Landing user UI: hoş geldin + avatar + rol (Gönüllü fix)
+    function prettyRole(role){
+      if(!role) return '';
+      if(role === 'gonullu') return 'Gönüllü';
+      if(role === 'admin') return 'Admin';
+      if(role === 'moderator') return 'Moderatör';
+      return role;
+    }
+
+    function updateLandingUserUI(){
+      const pill = document.getElementById('user-pill');
+      if(!pill) return;
+
+      let u = null;
+      try { u = JSON.parse(localStorage.getItem('patiUser') || 'null'); } catch(e){}
+
+      if(!u){
+        pill.style.display = 'none';
+        return;
+      }
+
+      pill.style.display = 'inline-flex';
+      document.getElementById('user-name').textContent = u.adSoyad || '';
+      document.getElementById('user-role').textContent = `• ${prettyRole(u.rol)}`;
+
+      const avatar = document.getElementById('user-avatar');
+      avatar.src = (u.resim && String(u.resim).trim()) ? u.resim : 'images/default-avatar.png';
+      avatar.onerror = () => { avatar.src = 'images/default-avatar.png'; };
+    }
+
+    // ✅ Yeni: Formda gönüllü/isim otomatik dolsun + besleme sekmesinde read-only
+    function fillVolunteerAuto(){
+      let u = null;
+      try { u = JSON.parse(localStorage.getItem('patiUser') || 'null'); } catch(e){}
+
+      const besleyen = document.getElementById('besleyenKisi');
+      const sahip = document.getElementById('sahip');
+
+      if(!u) return;
+
+      if (besleyen) besleyen.value = u.adSoyad || '';
+
+      // İstersen sahip otomatik dolmasın: bu satırı silersin.
+      if (sahip && !sahip.value) sahip.value = u.adSoyad || '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateLandingUserUI();
+      fillVolunteerAuto();
+    });
+
+    // sekmeDegis varsa bozmadan "hook" at
+    const _oldSekmeDegis = window.sekmeDegis;
+    window.sekmeDegis = function(mode){
+      if (typeof _oldSekmeDegis === "function") _oldSekmeDegis(mode);
+      fillVolunteerAuto();
+
+      // besleme seçildiyse sağlık bölümü gizlensin (istersen kaldırırız)
+      const hs = document.getElementById('healthSection');
+      if(hs){
+        hs.style.display = (mode === 'besleme') ? 'none' : 'block';
+      }
+    }
+  </script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
-

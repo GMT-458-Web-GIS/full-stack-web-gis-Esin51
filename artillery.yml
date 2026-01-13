@@ -1,0 +1,12 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Basic load test"
+
+scenarios:
+  - name: "GET kayıtlar"
+    flow:
+      - get:
+          url: "/api/kayitlar"
